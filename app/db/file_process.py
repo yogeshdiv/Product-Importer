@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Integer, String, Boolean, Index, text
-from db.models import Base
+"""Database model for tracking file processing status."""
+from sqlalchemy import (Column, Integer, String, Index, text)
+from app.db.models import Base
+
 
 class FileProcessor(Base):
     __tablename__ = "file_processor"

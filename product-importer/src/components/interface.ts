@@ -1,9 +1,9 @@
-export type Product {
+export type Product = {
     name: string;
     sku: string;
     description: string;
 }
 
-export type ProductsProps {
+export type ProductsProps = {
     products: Product[];
 }

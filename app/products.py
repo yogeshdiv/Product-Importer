@@ -1,12 +1,9 @@
 from sqlalchemy import select
-import asyncio
-from fastapi import Depends
-from sqlalchemy.orm import Session
-from db.products import Product
-from db.file_process import FileProcessor
-from db.connection import get_db
-from fastapi import APIRouter
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from fastapi import (Depends, APIRouter)
+from app.db.products import Product
+from app.db.connection import get_db
 
 class ProductSchema(BaseModel):
     sku: str
@@ -16,8 +13,8 @@ class ProductSchema(BaseModel):
 
 router = APIRouter()
 @router.post("/products")
-# @router.post("/products/{sku}")
 def upsert_product(data: ProductSchema, db: Session = Depends(get_db)):
+    '''Upsert a product based on SKU'''
     product = db.execute(
         select(Product).where(Product.sku.ilike(data.sku))
     ).scalar_one_or_none()
@@ -35,8 +32,8 @@ def upsert_product(data: ProductSchema, db: Session = Depends(get_db)):
 
 
 @router.get("/products/{sku}")
-def get_product(sku: str, db: Session = Depends(get_db)):
-    product = db.execute(
+def get_product(sku: str, db: Session = Depends(get_db)) -> dict[str, str | None | bool | int]:
+    product: Product | None = db.execute(
         select(Product).where(Product.sku.ilike(sku))
     ).scalar_one_or_none()
 
@@ -52,7 +49,8 @@ def get_product(sku: str, db: Session = Depends(get_db)):
     }
 
 @router.delete("/products/{sku}")
-def delete_product(sku: str, db: Session = Depends(get_db)):
+def delete_product(sku: str, db: Session = Depends(get_db)) -> dict[str, str]:
+    """Delete a product based on SKU"""
     product = db.execute(
         select(Product).where(Product.sku.ilike(sku))
     ).scalar_one_or_none()
