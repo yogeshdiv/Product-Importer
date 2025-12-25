@@ -34,6 +34,18 @@ services:
       - redis
     env_file:
       - .env
+  
+  app:
+    image: node:20
+    working_dir: /app/product-importer
+    container_name: app
+    command: sh -c "npm install && npm run dev -- --host --port 3000"
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
 
   worker:
     build: .

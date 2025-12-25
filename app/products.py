@@ -41,7 +41,6 @@ def get_product(sku: str, db: Session = Depends(get_db)) -> dict[str, str | None
         return {"error": "Product not found"}
 
     return {
-        "id": product.id,
         "sku": product.sku,
         "name": product.name,
         "description": product.description,
@@ -67,7 +66,6 @@ def list_products(db: Session = Depends(get_db)):
     products = db.execute(select(Product)).scalars().all()
     products_res = [
         {
-            "id": product.id,
             "sku": product.sku,
             "name": product.name,
             "description": product.description,
@@ -80,21 +78,3 @@ def list_products(db: Session = Depends(get_db)):
         "status": "ok"
     }
 
-
-# @app.websocket("/ws/progress/{file_id}")
-# async def websocket_endpoint(websocket: WebSocket,  file_id: str, db: Depends(get_db)):
-#     await websocket.accept()
-#     file_processor = db.execute(
-#         select(FileProcessor).where(FileProcessor.file_name.ilike(file_id))
-#     ).scalar_one_or_none()
-#     for i in range(0, 101, 10):
-#         await websocket.send_json({
-#             "status": "processing",
-#             "progress": i
-#         })
-#         await asyncio.sleep(1)
-
-#     await websocket.send_json({
-#         "status": "completed",
-#         "progress": 100
-#     })

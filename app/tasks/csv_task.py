@@ -1,21 +1,56 @@
 import csv
+import time
+from sqlalchemy import func
 import boto3
-from sqlalchemy import select, insert
 from typing import List
 from app.celery_app import celery_app
 from app.utils.aws import create_session
 from app.db.connection import get_db
 from app.db.file_process import FileProcessor
 from app.db.products import Product
+from app.redis import redis_client
+from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import select
 
+def upsert_products(
+    db: Session,
+    rows: list[dict[str, str | int | bool | None]],
+    file_name: str,
+):
+    if not rows:
+        return
 
-def upsert_products(db, rows: List[dict[str, str | int | bool | None]], file_name: str):
-    db.insert()
-    file_processor: FileProcessor | None = db.execute(
-        select(FileProcessor).where(FileProcessor.file_name == file_name)
-    ).scalar_one_or_none()
-    file_processor.records_inserted += len(rows)
-    db.commit()
+    stmt = insert(Product).values(rows)
+    stmt = stmt.on_conflict_do_update(
+        index_elements=[func.lower(Product.sku)],
+        set_={
+            "name": stmt.excluded.name,
+            "description": stmt.excluded.description,
+        },
+    )
+
+    try:
+        result = db.execute(stmt)
+        print(result, "rows upserted.")
+
+        file_processor = db.execute(
+            select(FileProcessor).where(FileProcessor.file_name == file_name)
+        ).scalar_one_or_none()
+        redis_client.hincrby("file_processing", file_processor.id, len(rows))
+        processed = redis_client.hget("file_processing", file_processor.id)
+        processed = int(processed) if processed else 0
+        if not file_processor:
+            raise ValueError(f"FileProcessor not found for file_name={file_name}")
+
+        file_processor.records_inserted += len(rows)
+
+        db.commit()
+
+    except Exception:
+        db.rollback()
+        raise
+
 
 @celery_app.task(bind=True, name="process_csv")
 def process_csv(self, file_name: str):
@@ -37,8 +72,9 @@ def process_csv(self, file_name: str):
             "description": row.get("description", "").strip()
         }
         rows_to_insert.append(new_row)
-        if len(rows_to_insert) >= 100:
+        if len(rows_to_insert) >= 2:
             upsert_products(db, rows_to_insert, file_name)
+            time.sleep(3)  # Simulate processing time
             rows_to_insert = []
     if rows_to_insert:
         upsert_products(db, rows_to_insert, file_name)

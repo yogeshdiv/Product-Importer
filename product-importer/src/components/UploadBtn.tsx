@@ -1,4 +1,6 @@
+import { useState } from 'react';
 export const UploadBtn = () => {
+    const [progress, setProgress] = useState<number>(0);
     const handleClick = async (): Promise<void> => {
         const fileInput = document.getElementById('fileInput') as HTMLInputElement | null;
         if (!fileInput) return alert('File input not found');
@@ -7,8 +9,29 @@ export const UploadBtn = () => {
         const fd = new FormData();
         fd.append('file', file);
         try {
-            const res = await fetch('http://127.0.0.1:8000/upload', { method: 'POST', body: fd });
-            if (res.ok) alert('Uploaded'); else alert('Upload failed');
+            const res = await fetch('http://localhost:8000/upload', { method: 'POST', body: fd });
+            if (res.ok){
+                const fileId = await res.json().then((data) => data.file_id);
+                console.log("upload complete", fileId);
+                const ws = new WebSocket(`ws://localhost:8000/ws/progress/${fileId}`);
+
+                ws.onmessage = (event) => {
+                    console.log("Message:", JSON.parse(event.data));
+                    const message = JSON.parse(event.data);
+                    if (message.status === 'completed'){
+                        alert('Upload completed');
+                        ws.close();
+                    }else{
+                        console.log(`Progress: ${message.progress}%`);
+                        setProgress(message.progress);
+                    }
+                };
+
+                ws.onopen = () => console.log("Connected");
+                ws.onclose = () => console.log("Closed")
+            } else{
+                alert('Upload failed');
+            }
         } catch {
             alert('Upload error');
         }
@@ -18,6 +41,7 @@ export const UploadBtn = () => {
         <>
             <input id="fileInput" type="file" />
             <button id="uploadBtn" onClick={handleClick}>Upload</button>
+            <div>Progress: {progress}%</div>
         </>
     )
 }

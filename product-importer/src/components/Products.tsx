@@ -6,6 +6,7 @@ export const Products = () => {
     useEffect(() => {
         const fetchProducts = async () => {
         try {
+            console.log("fetching products")
             const res = await fetch("http://localhost:8000/products");
             const json = await res.json();
             setProducts(json.products);
