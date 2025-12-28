@@ -1,0 +1,88 @@
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 1rem;
+}
+
+.tbody tr {
+  transition: all 0.2s ease-in-out;
+  background-color: #ffffff;
+}
+
+.tbody tr:hover {
+  background-color: #f8fafc;
+  transform: scale(1.001);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.tbody tr:last-child .td {
+  border-bottom: none;
+}
+
+.td {
+  padding: 16px 18px;
+  font-size: 15px;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+  transition: color 0.2s ease;
+}
+
+.tbody tr:hover .td {
+  color: #111827;
+}
+
+/* Description column - text truncation for long content */
+.td:nth-child(3) {
+  max-width: 400px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
+}
+
+/* Action column */
+.td:last-child {
+  text-align: right;
+  width: 120px;
+}
+
+.th {
+  text-align: left;
+  padding: 16px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2937;
+  background: linear-gradient(to bottom, #f9fafb 0%, #f3f4f6 100%);
+  border-bottom: 2px solid #e5e7eb;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+@media (max-width: 768px) {
+  .td {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+  
+  .th {
+    padding: 12px 14px;
+    font-size: 12px;
+  }
+  
+  .td:nth-child(3) {
+    max-width: 200px;
+  }
+}
+
+

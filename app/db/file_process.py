@@ -1,17 +1,18 @@
-"""Database model for tracking file processing status."""
-from sqlalchemy import (Column, Integer, String, Index, text)
+from sqlalchemy import Index, text
+from sqlalchemy.orm import Mapped, mapped_column
 from app.db.models import Base
 
 
 class FileProcessor(Base):
     __tablename__ = "file_processor"
 
-    id = Column(Integer, primary_key=True)
-    file_name = Column(String, nullable=False)
-    status = Column(String)
-    total_number_of_records = Column(Integer, default=0)
-    records_inserted = Column(Integer, default=0)
-    records_updated = Column(Integer, default=0)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    file_name: Mapped[str] = mapped_column(nullable=False)
+    status: Mapped[str] = mapped_column(default="pending")
+    total_number_of_records: Mapped[int] = mapped_column(default=0)
+    records_inserted: Mapped[int] = mapped_column(default=0)
+    records_updated: Mapped[int] = mapped_column(default=0)
+    file_with_errors: Mapped[str] = mapped_column(default="")
 
     __table_args__ = (
         Index(

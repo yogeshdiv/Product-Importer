@@ -1,5 +1,6 @@
-from app.products import router as ProductsRouter
-from app.upload_routes import router as UploadRouter
+from app.api_routes.products import router as ProductsRouter
+from app.api_routes.files import router as UploadRouter
+from app.websockets.file_process import router as FileProcessRouter
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -18,6 +19,7 @@ app.add_middleware(
 )
 app.include_router(ProductsRouter)
 app.include_router(UploadRouter)
+app.include_router(FileProcessRouter)
 
 @app.get("/health")
 def health_check():

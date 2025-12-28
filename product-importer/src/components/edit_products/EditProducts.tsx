@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import type { Product } from "./interface"
+import type { Product } from "../interface"
+import styles from './EditProducts.module.css';
 
 export const EditProduct = () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -42,15 +43,31 @@ export const EditProduct = () => {
 
     }
     return (
-        <form onSubmit={handleSubmit}>
-            <h2>Edit Product</h2>
-            <label>sku</label>
-            <input type="text" name="sku" value={product?.sku} disabled/>
-            <label>Name</label>
-            <input type="text" name="name" defaultValue={product?.name} />
-            <label>Description</label>
-            <textarea name="description" defaultValue={product?.description}></textarea>
-            <button type="submit">Save</button>
-        </form>
-    )
+        <form className={styles.form} onSubmit={handleSubmit}>
+            <h2 className={styles.title}>Edit Product</h2>
+
+            <div className={styles.field}>
+                <label>SKU</label>
+                <input type="text" name="sku" value={product?.sku} disabled />
+            </div>
+
+            <div className={styles.field}>
+                <label>Name</label>
+                <input type="text" name="name" defaultValue={product?.name} />
+            </div>
+
+            <div className={styles.field}>
+                <label>Description</label>
+                <textarea
+                name="description"
+                defaultValue={product?.description}
+                rows={4}
+                />
+            </div>
+
+            <div className={styles.actions}>
+                <button type="submit">Save</button>
+            </div>
+            </form>
+)
 }

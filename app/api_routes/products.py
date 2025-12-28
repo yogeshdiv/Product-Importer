@@ -1,14 +1,9 @@
 from sqlalchemy import select
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from fastapi import (Depends, APIRouter)
 from app.db.products import Product
 from app.db.connection import get_db
-
-class ProductSchema(BaseModel):
-    sku: str
-    name: str | None = None
-    description: str | None = None
+from app.pydantic_models import ProductResponse, ProductSchema
 
 
 router = APIRouter()
@@ -32,7 +27,9 @@ def upsert_product(data: ProductSchema, db: Session = Depends(get_db)):
 
 
 @router.get("/products/{sku}")
-def get_product(sku: str, db: Session = Depends(get_db)) -> dict[str, str | None | bool | int]:
+def get_product(
+    sku: str, db: Session = Depends(get_db)
+) -> ProductResponse:
     product: Product | None = db.execute(
         select(Product).where(Product.sku.ilike(sku))
     ).scalar_one_or_none()
@@ -40,12 +37,13 @@ def get_product(sku: str, db: Session = Depends(get_db)) -> dict[str, str | None
     if not product:
         return {"error": "Product not found"}
 
-    return {
-        "sku": product.sku,
-        "name": product.name,
-        "description": product.description,
-        "active": product.active
-    }
+    return ProductResponse(
+        sku=product.sku,
+        name=product.name,
+        description=product.description,
+        active=product.active
+    )
+
 
 @router.delete("/products/{sku}")
 def delete_product(sku: str, db: Session = Depends(get_db)) -> dict[str, str]:
@@ -77,4 +75,3 @@ def list_products(db: Session = Depends(get_db)):
         "products": products_res,
         "status": "ok"
     }
-

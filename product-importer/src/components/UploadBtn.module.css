@@ -1,0 +1,368 @@
+.uploadSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 2px dashed #cbd5e1;
+  transition: all 0.3s ease;
+}
+
+.uploadSection:hover {
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.fileInput {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  font-size: 14px;
+  font-family: inherit;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fileInput:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.fileInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.fileInput:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.uploadButton {
+  padding: 10px 24px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+  white-space: nowrap;
+}
+
+.uploadButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.uploadButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.uploadButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.progressContainer {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  animation: slideDown 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.progressContainer.processing {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.progressContainer.completed {
+  background-color: #f0fdf4;
+  border: 1px solid #86efac;
+}
+
+.progressContainer.error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.progressContainer.uploading {
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1rem 1.25rem;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.progressHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.progressTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.progressIndicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #3b82f6;
+  animation: pulse 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
+}
+
+.progressBarWrapper {
+  width: 100%;
+  height: 8px;
+  background-color: #dbeafe;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progressBar {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+.progressStats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.statLabel {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.statValue {
+  color: #1e40af;
+  font-weight: 700;
+}
+
+.statTotal {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.errorStat {
+  color: #dc2626;
+}
+
+.errorStat .statLabel {
+  color: #991b1b;
+}
+
+.errorStat .statValue {
+  color: #dc2626;
+}
+
+.progressPercentage {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 600;
+  text-align: right;
+}
+
+.completedState {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.successIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #10b981;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  flex-shrink: 0;
+  animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.completedContent {
+  flex: 1;
+}
+
+.completedTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #065f46;
+  margin-bottom: 6px;
+}
+
+.completedStats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: #047857;
+  flex-wrap: wrap;
+}
+
+.errorCount {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.errorState {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.errorIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  flex-shrink: 0;
+  animation: scaleIn 0.3s ease;
+}
+
+.errorContent {
+  flex: 1;
+}
+
+.errorTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #991b1b;
+  margin-bottom: 6px;
+}
+
+.errorMessage {
+  font-size: 13px;
+  color: #dc2626;
+  line-height: 1.5;
+}
+
+.retryButton {
+  padding: 8px 16px;
+  border-radius: 6px;
+  background-color: #ef4444;
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.retryButton:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.retryButton:active {
+  transform: translateY(0);
+}
+
+.uploadingState {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0369a1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .uploadSection {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .fileInput {
+    width: 100%;
+  }
+  
+  .uploadButton {
+    width: 100%;
+  }
+}
+

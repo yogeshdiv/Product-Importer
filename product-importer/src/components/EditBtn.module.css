@@ -1,0 +1,28 @@
+.iconButton {
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.iconButton:hover {
+  background-color: #f9fafb;
+  color: #374151;
+}
+
+.iconButton:active {
+  background-color: #f3f4f6;
+}
+
+.iconButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}

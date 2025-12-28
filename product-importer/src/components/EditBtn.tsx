@@ -1,11 +1,19 @@
 import { useNavigate } from "react-router-dom";
+import { Pencil } from "lucide-react";
+import styles from './EditBtn.module.css';
+
 export const EditBtn = ({ sku }: { sku: string }) => {
     const navigator = useNavigate();
     const handleClick = (): void => {
-        alert('Edit button clicked');
         navigator(`/edit?sku=${sku}`);
     }
     return (
-        <button id="editBtn" onClick={handleClick}>Edit</button>
+        <button
+            className={styles.iconButton}
+            onClick={() => handleClick()}
+            aria-label="Edit product"
+        >
+            <Pencil size={16} />
+        </button>
     )
 }
