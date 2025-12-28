@@ -10,7 +10,7 @@ from app.utils.aws import create_session
 from app.db.connection import get_db
 from app.db.file_process import FileProcessor
 from app.db.products import Product
-from app.redis import redis_client
+from app.redis import set_redis_data, increment_redis_data
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import select
@@ -68,7 +68,7 @@ def process_csv_task(
     )
 
     rows_to_insert: list[dict] = []
-    redis_client.hset("file_status", file_processor.id, "processing")
+    set_redis_data("file_status", file_processor.id, "processing")
     rows_with_errors: list[dict] = []
 
     for row in reader:
@@ -79,14 +79,14 @@ def process_csv_task(
         }
         if not new_row["sku"]:
             rows_with_errors.append(row)
-            redis_client.hincrby("row_with_errors", file_processor.id, 1)
+            increment_redis_data("row_with_errors", file_processor.id, 1)
             continue
 
         rows_to_insert.append(new_row)
 
         if len(rows_to_insert) >= 2:
             rows_updated = upsert_products(db, rows_to_insert)
-            redis_client.hincrby("file_processing", file_processor.id, rows_updated)
+            increment_redis_data("file_processing", file_processor.id, rows_updated)
             file_processor.records_inserted += rows_updated
             rows_to_insert.clear()
             time.sleep(3)
@@ -94,7 +94,7 @@ def process_csv_task(
     if rows_to_insert:
         rows_updated = upsert_products(db, rows_to_insert)
         file_processor.records_inserted += rows_updated
-        redis_client.hincrby("file_processing", file_processor.id, rows_updated)
+        increment_redis_data("file_processing", file_processor.id, rows_updated)
 
     if rows_with_errors:
         handle_error_file(rows_with_errors, s3_client, db, file_processor)
@@ -154,7 +154,7 @@ def process_csv(self, file_name: str):
     # =========================
     total_rows = count_total_rows(s3_client, file_name)
     file_processor.total_number_of_records = total_rows
-    redis_client.hset(
+    set_redis_data(
         name="file_total",
         key=str(file_processor.id),
         value=str(total_rows),
@@ -168,4 +168,4 @@ def process_csv(self, file_name: str):
 
     file_processor.status = "completed"
     db.commit()
-    redis_client.hset("file_status", file_processor.id, "completed")
+    set_redis_data("file_status", file_processor.id, "completed")
