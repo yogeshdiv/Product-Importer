@@ -5,3 +5,5 @@ export { EditBtn } from "./EditBtn";
 export { ProductHeader } from "./products/ProductHeader";
 export { ProductBody } from "./products/ProductBody";
 export { Files } from "./Files";
+export { NavBar } from "./NavBar";
+export { SampleCsv } from "./SampleCsv"

@@ -1,5 +1,6 @@
 import type { File } from './interface'
 import { useState, useEffect } from 'react'
+import { NavBar } from './NavBar';
 import styles from './Files.module.css';
 
 export const Files = () => {
@@ -9,7 +10,7 @@ export const Files = () => {
 
     const handleDownload = async (
         e: React.MouseEvent<HTMLAnchorElement>,
-        fileId: string
+        fileId: string | number
     ) => {
         e.preventDefault();
 
@@ -64,72 +65,75 @@ export const Files = () => {
     };
 
     return (
-        <div className={styles.container}>
-            <h2>Files</h2>
-            
-            {loading && (
-                <div className={styles.loading}>Loading files...</div>
-            )}
+        <>
+            <NavBar />
+            <div className={styles.container}>
+                <h2>Files</h2>
+                
+                {loading && (
+                    <div className={styles.loading}>Loading files...</div>
+                )}
 
-            {error && (
-                <div className={styles.error}>{error}</div>
-            )}
+                {error && (
+                    <div className={styles.error}>{error}</div>
+                )}
 
-            {!loading && !error && (
-                <>
-                    {files.length === 0 ? (
-                        <div className={styles.emptyState}>
-                            No files uploaded yet.
-                        </div>
-                    ) : (
-                        <div className={styles.tableWrapper}>
-                            <table className={styles.table}>
-                                <thead>
-                                    <tr>
-                                        <th className={styles.th}>ID</th>
-                                        <th className={styles.th}>File Name</th>
-                                        <th className={styles.th}>Status</th>
-                                        <th className={styles.th}>Total Records</th>
-                                        <th className={styles.th}>Inserted</th>
-                                        <th className={styles.th}>Updated</th>
-                                        <th className={styles.th}>Errors</th>
-                                    </tr>
-                                </thead>
-                                <tbody className={styles.tbody}>
-                                    {files.map((file: File) => (
-                                        <tr key={file.id}>
-                                            <td className={styles.td}>{file.id}</td>
-                                            <td className={styles.td}>{file.file_name}</td>
-                                            <td className={styles.td}>
-                                                <span className={`${styles.statusBadge} ${getStatusBadgeClass(file.status)}`}>
-                                                    {file.status}
-                                                </span>
-                                            </td>
-                                            <td className={styles.td}>{file.total_number_of_records}</td>
-                                            <td className={styles.td}>{file.records_inserted}</td>
-                                            <td className={styles.td}>{file.records_updated}</td>
-                                            <td className={styles.td}>
-                                                {file.file_with_errors ? (
-                                                    <a
-                                                    href="#"
-                                                    className={styles.hasErrors}
-                                                    onClick={(e) => handleDownload(e, file.id)}
-                                                    >
-                                                    Download error file
-                                                    </a>
-                                                ) : (
-                                                    <span className={styles.noErrors}>No</span>
-                                                )}
-                                            </td>
+                {!loading && !error && (
+                    <>
+                        {files.length === 0 ? (
+                            <div className={styles.emptyState}>
+                                No files uploaded yet.
+                            </div>
+                        ) : (
+                            <div className={styles.tableWrapper}>
+                                <table className={styles.table}>
+                                    <thead>
+                                        <tr>
+                                            <th className={styles.th}>ID</th>
+                                            <th className={styles.th}>File Name</th>
+                                            <th className={styles.th}>Status</th>
+                                            <th className={styles.th}>Total Records</th>
+                                            <th className={styles.th}>Inserted</th>
+                                            <th className={styles.th}>Updated</th>
+                                            <th className={styles.th}>Errors</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </>
-            )}
-        </div>
+                                    </thead>
+                                    <tbody className={styles.tbody}>
+                                        {files.map((file: File) => (
+                                            <tr key={file.id}>
+                                                <td className={styles.td}>{file.id}</td>
+                                                <td className={styles.td}>{file.file_name}</td>
+                                                <td className={styles.td}>
+                                                    <span className={`${styles.statusBadge} ${getStatusBadgeClass(file.status)}`}>
+                                                        {file.status}
+                                                    </span>
+                                                </td>
+                                                <td className={styles.td}>{file.total_number_of_records}</td>
+                                                <td className={styles.td}>{file.records_inserted}</td>
+                                                <td className={styles.td}>{file.records_updated}</td>
+                                                <td className={styles.td}>
+                                                    {file.file_with_errors ? (
+                                                        <a
+                                                        href="#"
+                                                        className={styles.hasErrors}
+                                                        onClick={(e) => handleDownload(e, file.id)}
+                                                        >
+                                                        Download error file
+                                                        </a>
+                                                    ) : (
+                                                        <span className={styles.noErrors}>No</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+        </>
     )
 }
 

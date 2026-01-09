@@ -1,6 +1,7 @@
 import type { Product, ProductsResponse } from './interface'
 import { useState, useEffect, useRef } from 'react'
-import { UploadBtn, ProductBody, ProductHeader } from './index';
+import { UploadBtn, ProductBody, ProductHeader, SampleCsv } from './index';
+import { NavBar } from './NavBar';
 import styles from './Products.module.css';
 export const Products = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -52,18 +53,22 @@ export const Products = () => {
     };
 
     return (
-        <div className={styles.container}>
-            <UploadBtn onUploadComplete={refreshProducts} />
-            <h2>Products</h2>
-            <table>
-                <ProductHeader />
-                <ProductBody products={products} />
-            </table>
-            {hasMore && (
-                <button onClick={fetchProducts} disabled={loading}>
-                    {loading ? 'Loading...' : 'Load more'}
-                </button>
-            )}
-        </div>
+        <>
+            <NavBar />
+            <div className={styles.container}>
+                <UploadBtn onUploadComplete={refreshProducts} />
+                <SampleCsv />
+                <h2>Products</h2>
+                <table>
+                    <ProductHeader />
+                    <ProductBody products={products} />
+                </table>
+                {hasMore && (
+                    <button onClick={fetchProducts} disabled={loading}>
+                        {loading ? 'Loading...' : 'Load more'}
+                    </button>
+                )}
+            </div>
+        </>
     );
 };
