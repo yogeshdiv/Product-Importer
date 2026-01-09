@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from app.db.file_process import FileProcessor
 from sqlalchemy import select
 
-def get_file_status(file_id: str, db: Session) -> str | None:
+def get_file_status(db: Session, file_id: str) -> str | None:
     file_processor: FileProcessor | None = db.execute(
         select(FileProcessor).where(FileProcessor.id == file_id)
     ).scalar_one_or_none()
@@ -10,7 +10,7 @@ def get_file_status(file_id: str, db: Session) -> str | None:
         return None
     return file_processor.status
 
-def get_file_progress(file_id: str, db: Session) -> int:
+def get_file_progress(db: Session, file_id: str) -> int:
     file_processor: FileProcessor | None = db.execute(
         select(FileProcessor).where(FileProcessor.id == file_id)
     ).scalar_one_or_none()
@@ -18,7 +18,7 @@ def get_file_progress(file_id: str, db: Session) -> int:
         return 0
     return file_processor.records_inserted
 
-def get_total_records(file_id: str, db: Session) -> int:
+def get_total_records(db: Session, file_id: str) -> int:
     file_processor: FileProcessor | None = db.execute(
         select(FileProcessor).where(FileProcessor.id == file_id)
     ).scalar_one_or_none()
@@ -26,7 +26,7 @@ def get_total_records(file_id: str, db: Session) -> int:
         return 0
     return file_processor.total_number_of_records
 
-def get_error_count(file_id: str, db: Session) -> int:
+def get_error_count(db: Session, file_id: str) -> int:
     file_processor: FileProcessor | None = db.execute(
         select(FileProcessor).where(FileProcessor.id == file_id)
     ).scalar_one_or_none()

@@ -60,8 +60,25 @@ def delete_product(sku: str, db: Session = Depends(get_db)) -> dict[str, str]:
     return {"status": "deleted"}
 
 @router.get("/products")
-def list_products(db: Session = Depends(get_db)):
-    products = db.execute(select(Product)).scalars().all()
+def list_products(
+    db: Session = Depends(get_db),
+    cursor = 0,
+    count: int = 10
+):
+    stmt = (
+        select(Product)
+        .where(Product.id > cursor)
+        .order_by(Product.id)
+        .limit(count + 1)
+    )
+
+    products = db.execute(stmt).scalars().all()
+
+    has_more = len(products) > count
+    products = products[:count]
+
+    next_cursor = products[-1].id if products else None
+
     products_res = [
         {
             "sku": product.sku,
@@ -71,7 +88,10 @@ def list_products(db: Session = Depends(get_db)):
         }
         for product in products
     ]
+
     return {
         "products": products_res,
+        "next_cursor": next_cursor,
+        "has_more": has_more,
         "status": "ok"
     }

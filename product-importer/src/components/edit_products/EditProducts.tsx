@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import type { Product } from "../interface"
 import styles from './EditProducts.module.css';
+import { useNavigate } from "react-router-dom";
 
 export const EditProduct = () => {
+    const navigator = useNavigate()
     const urlParams = new URLSearchParams(window.location.search);
     const sku = urlParams.get("sku");
     console.log(sku)
@@ -16,6 +18,9 @@ export const EditProduct = () => {
         }
         fetchProduct();
     }, [sku]);
+    const handleCancelClick = () => {
+        navigator(`/`)
+    }
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
         const form = e.currentTarget;
@@ -64,10 +69,10 @@ export const EditProduct = () => {
                 rows={4}
                 />
             </div>
-
             <div className={styles.actions}>
                 <button type="submit">Save</button>
+                <button type="button" onClick={handleCancelClick}>Cancel</button>
             </div>
             </form>
-)
+    )
 }

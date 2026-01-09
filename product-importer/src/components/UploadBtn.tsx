@@ -3,7 +3,7 @@ import styles from './UploadBtn.module.css';
 
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'completed' | 'error';
 
-export const UploadBtn = () => {
+export const UploadBtn = ({ onUploadComplete }) => {
     const [progress, setProgress] = useState<number>(0);
     const [total, setTotal] = useState<number>(0);
     const [errors, setErrors] = useState<number>(0);
@@ -45,7 +45,7 @@ export const UploadBtn = () => {
         fd.append('file', file);
 
         try {
-            const res = await fetch('http://localhost:8000/upload', { method: 'POST', body: fd });
+            const res = await fetch('http://localhost:8000/files', { method: 'POST', body: fd });
             
             if (res.ok) {
                 const fileId = await res.json().then((data) => data.file_id);
@@ -62,6 +62,7 @@ export const UploadBtn = () => {
                             setProgress(message.progress || total);
                             setErrors(message.errors || 0);
                             setIsUploading(false);
+                            onUploadComplete();
                             ws.close();
                             
                             // Reset after 5 seconds
@@ -108,7 +109,8 @@ export const UploadBtn = () => {
             } else {
                 const errorData = await res.json().catch(() => ({}));
                 setStatus('error');
-                setErrorMessage(errorData.message || 'Upload failed. Please try again.');
+                console.log(errorData)
+                setErrorMessage(errorData.detail.message || 'Upload failed. Please try again.');
                 setIsUploading(false);
             }
         } catch (err) {
@@ -195,16 +197,6 @@ export const UploadBtn = () => {
                                 <div className={styles.errorTitle}>Upload failed</div>
                                 <div className={styles.errorMessage}>{errorMessage}</div>
                             </div>
-                            <button 
-                                className={styles.retryButton}
-                                onClick={() => {
-                                    resetState();
-                                    const fileInput = document.getElementById('fileInput') as HTMLInputElement | null;
-                                    if (fileInput) fileInput.value = '';
-                                }}
-                            >
-                                Try Again
-                            </button>
                         </div>
                     )}
 

@@ -17,3 +17,9 @@ export type File = {
     records_updated: number;
     file_with_errors: string;
 }
+
+export interface ProductsResponse {
+  products: Product[];
+  next_cursor: number | null;
+  has_more: boolean;
+}

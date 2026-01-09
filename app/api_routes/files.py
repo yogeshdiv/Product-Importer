@@ -11,7 +11,7 @@ from app.pydantic_models import FileUploadResponse
 from sqlalchemy import desc
 router = APIRouter()
 
-@router.post("/upload")
+@router.post("/files")
 async def upload_file(
     file: UploadFile = File(...), db: Session = Depends(get_db),
     file_name: str = None
@@ -35,7 +35,9 @@ async def upload_file(
         print("File with the same name already exists")
         raise HTTPException(
             status_code=400,
-            detail="File with the same name already exists"
+            detail={
+                "message": "File with the same name already exists"
+            }
         )
     file_record = FileProcessor(
         file_name=file_name,

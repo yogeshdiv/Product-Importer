@@ -15,6 +15,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import select
 
+CHECKPOINT_FOR_DB_COMMIT = 10000
+DB_BATCH_SIZE = 2000
+
 def upsert_products(
     db: Session,
     rows: list[dict[str, str | int | bool | None]]
@@ -62,12 +65,13 @@ def process_csv_task(
         Bucket="temp-csv-files-product-importer",
         Key=file_name
     )
-
+    
     reader = csv.DictReader(
         (line.decode("utf-8") for line in obj["Body"].iter_lines())
     )
 
     rows_to_insert: list[dict] = []
+    processed_since_checkout: int = 0
     set_redis_data("file_status", file_processor.id, "processing")
     rows_with_errors: list[dict] = []
 
@@ -84,17 +88,24 @@ def process_csv_task(
 
         rows_to_insert.append(new_row)
 
-        if len(rows_to_insert) >= 2:
+        if len(rows_to_insert) >= DB_BATCH_SIZE:
             rows_updated = upsert_products(db, rows_to_insert)
             increment_redis_data("file_processing", file_processor.id, rows_updated)
-            file_processor.records_inserted += rows_updated
+            processed_since_checkout += rows_updated
             rows_to_insert.clear()
             time.sleep(3)
+        
+            if processed_since_checkout >= CHECKPOINT_FOR_DB_COMMIT:
+                file_processor.records_inserted += processed_since_checkout
+                processed_since_checkout = 0
+                db.commit()
 
     if rows_to_insert:
         rows_updated = upsert_products(db, rows_to_insert)
-        file_processor.records_inserted += rows_updated
         increment_redis_data("file_processing", file_processor.id, rows_updated)
+        processed_since_checkout += rows_updated
+        file_processor.records_inserted += processed_since_checkout
+        db.commit()
 
     if rows_with_errors:
         handle_error_file(rows_with_errors, s3_client, db, file_processor)
