@@ -1,7 +1,11 @@
-from sqlalchemy import Column, String, Boolean, Integer, Index, func, text
+"""Product database model."""
+from sqlalchemy import Boolean, Column, Index, Integer, String, func, text
+
 from app.db.models import Base
 
+
 class Product(Base):
+    """Database model for products."""
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True)

@@ -1,5 +1,7 @@
-from celery import Celery
+"""Celery application configuration."""
 import os
+
+from celery import Celery
 
 BROKER_URL = os.getenv("CELERY_BROKER_URL")
 celery_app: Celery = Celery('product_importer', broker=BROKER_URL)

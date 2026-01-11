@@ -1,21 +1,23 @@
-from sqlalchemy import select
-from fastapi import UploadFile, File, HTTPException
-from app.utils.aws import create_session
-from app.db.file_process import FileProcessor
-from app.db.connection import get_db
-from fastapi import Depends
-from fastapi import APIRouter
-from app.tasks.csv_task import process_csv
+"""API routes for file upload and management."""
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
+
+from app.db.connection import get_db
+from app.db.file_process import FileProcessor
 from app.pydantic_models import FileUploadResponse
-from sqlalchemy import desc
+from app.tasks.csv_task import process_csv
+from app.utils.aws import create_session
+
 router = APIRouter()
+
 
 @router.post("/files")
 async def upload_file(
     file: UploadFile = File(...), db: Session = Depends(get_db),
     file_name: str = None
 ) -> FileUploadResponse:
+    """Upload a CSV file for processing."""
     if not file.filename:
         raise HTTPException(status_code=400, detail="No selected file")
 
@@ -58,6 +60,7 @@ async def upload_file(
 
 @router.get("/files")
 def list_files(db: Session = Depends(get_db)):
+    """List all uploaded files with their status."""
     files = db.execute(
         select(FileProcessor).order_by(desc(FileProcessor.id))
     ).scalars().all()
@@ -83,6 +86,7 @@ def list_files(db: Session = Depends(get_db)):
 async def get_error_file_download_url(
     file_id: int, db: Session = Depends(get_db)
 ) -> dict[str, str]:
+    """Get a presigned URL to download error file for a given file ID."""
     file_record = db.execute(
         select(FileProcessor).where(FileProcessor.id == file_id)
     ).scalar_one_or_none()
@@ -105,3 +109,4 @@ async def get_error_file_download_url(
     )
 
     return {"error_file_download_url": presigned_url}
+

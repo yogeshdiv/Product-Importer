@@ -1,29 +1,33 @@
+"""CSV processing tasks for Celery."""
 import csv
 import os
 import tempfile
 import time
-from sqlalchemy import func
-import boto3
 from typing import List
+
+import boto3
+from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import Session
+
 from app.celery_app import celery_app
-from app.utils.aws import create_session
 from app.db.connection import get_db
 from app.db.file_process import FileProcessor
 from app.db.products import Product
-from app.redis import set_redis_data, increment_redis_data
-from sqlalchemy.orm import Session
-from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy import select
+from app.redis import increment_redis_data, set_redis_data
+from app.utils.aws import create_session
 
 CHECKPOINT_FOR_DB_COMMIT = 10000
 DB_BATCH_SIZE = 2000
 
+
 def upsert_products(
     db: Session,
     rows: list[dict[str, str | int | bool | None]]
-):
+) -> int:
+    """Upsert products into the database."""
     if not rows:
-        return
+        return 0
 
     stmt = insert(Product).values(rows)
     stmt = stmt.on_conflict_do_update(
@@ -48,6 +52,7 @@ def count_total_rows(
     s3_client: boto3.client,
     file_name: str
 ) -> int:
+    """Count total rows in a CSV file from S3."""
     obj = s3_client.get_object(
         Bucket="temp-csv-files-product-importer",
         Key=file_name
@@ -60,12 +65,13 @@ def count_total_rows(
 def process_csv_task(
     file_name: str, file_processor: FileProcessor,
     db: Session, s3_client: boto3.client
-):
+) -> None:
+    """Process CSV file and insert/update products."""
     obj = s3_client.get_object(
         Bucket="temp-csv-files-product-importer",
         Key=file_name
     )
-    
+
     reader = csv.DictReader(
         (line.decode("utf-8") for line in obj["Body"].iter_lines())
     )
@@ -94,7 +100,7 @@ def process_csv_task(
             processed_since_checkout += rows_updated
             rows_to_insert.clear()
             time.sleep(3)
-        
+
             if processed_since_checkout >= CHECKPOINT_FOR_DB_COMMIT:
                 file_processor.records_inserted += processed_since_checkout
                 processed_since_checkout = 0
@@ -116,7 +122,8 @@ def handle_error_file(
     s3_client: boto3.client,
     db: Session,
     file_processor: FileProcessor
-):
+) -> None:
+    """Handle error rows by creating a CSV file and uploading to S3."""
     if not rows_with_errors:
         return
 
@@ -144,7 +151,8 @@ def handle_error_file(
 
 
 @celery_app.task(bind=True, name="process_csv")
-def process_csv(self, file_name: str):
+def process_csv(self, file_name: str) -> None:  # pylint: disable=unused-argument
+    """Celery task to process a CSV file."""
     db = next(get_db())
     session: boto3.Session = create_session()
     s3_client = session.client("s3")

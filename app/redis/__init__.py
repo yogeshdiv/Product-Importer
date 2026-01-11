@@ -1,9 +1,10 @@
+"""Redis client and utility functions."""
+from typing import Callable, Literal, Union
+
 from redis import Redis
-from typing import Callable, Union
 
-redis_client : Redis = Redis(host='redis', port=6379)
+redis_client: Redis = Redis(host='redis', port=6379)
 
-from typing import Callable, Union, Literal
 
 def get_with_fallback(
     name: str,
@@ -11,6 +12,7 @@ def get_with_fallback(
     datatype: Literal["str", "int"],
     fallback: Callable[[str], Union[str, int]],
 ) -> Union[str, int]:
+    """Get value from Redis, or use fallback function if not found."""
     value = redis_client.hget(name, key)
 
     if value is None:
@@ -37,5 +39,5 @@ def set_redis_data(
 def increment_redis_data(
     name: str, key: str, amount: int = 1
 ) -> None:
-    """Increment a given key's value in Redis by a specified amount"""
+    """Increment a given key's value in Redis by a specified amount."""
     redis_client.hincrby(name, key, amount)

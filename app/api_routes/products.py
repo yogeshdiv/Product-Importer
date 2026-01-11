@@ -1,15 +1,18 @@
+"""API routes for product management."""
+from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from fastapi import (Depends, APIRouter)
-from app.db.products import Product
+
 from app.db.connection import get_db
+from app.db.products import Product
 from app.pydantic_models import ProductResponse, ProductSchema
 
-
 router = APIRouter()
+
+
 @router.post("/products")
 def upsert_product(data: ProductSchema, db: Session = Depends(get_db)):
-    '''Upsert a product based on SKU'''
+    """Upsert a product based on SKU."""
     product = db.execute(
         select(Product).where(Product.sku.ilike(data.sku))
     ).scalar_one_or_none()
@@ -30,6 +33,7 @@ def upsert_product(data: ProductSchema, db: Session = Depends(get_db)):
 def get_product(
     sku: str, db: Session = Depends(get_db)
 ) -> ProductResponse:
+    """Get a product by SKU."""
     product: Product | None = db.execute(
         select(Product).where(Product.sku.ilike(sku))
     ).scalar_one_or_none()
@@ -62,9 +66,10 @@ def delete_product(sku: str, db: Session = Depends(get_db)) -> dict[str, str]:
 @router.get("/products")
 def list_products(
     db: Session = Depends(get_db),
-    cursor = 0,
+    cursor: int = 0,
     count: int = 10
 ):
+    """List products with cursor-based pagination."""
     stmt = (
         select(Product)
         .where(Product.id > cursor)
@@ -95,3 +100,4 @@ def list_products(
         "has_more": has_more,
         "status": "ok"
     }
+

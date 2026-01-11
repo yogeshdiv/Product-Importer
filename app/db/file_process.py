@@ -1,9 +1,12 @@
+"""File processor database model."""
 from sqlalchemy import Index, text
 from sqlalchemy.orm import Mapped, mapped_column
+
 from app.db.models import Base
 
 
 class FileProcessor(Base):
+    """Database model for tracking file processing status."""
     __tablename__ = "file_processor"
 
     id: Mapped[int] = mapped_column(primary_key=True)
