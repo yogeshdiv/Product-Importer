@@ -1,11 +1,11 @@
 """API routes for product management."""
-from fastapi import APIRouter, Depends
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func, select, or_
 from sqlalchemy.orm import Session
 
 from app.db.connection import get_db
 from app.db.products import Product
-from app.pydantic_models import ProductResponse, ProductSchema
+from app.pydantic_models import ProductSchema
 
 router = APIRouter()
 
@@ -29,26 +29,6 @@ def upsert_product(data: ProductSchema, db: Session = Depends(get_db)):
     return {"status": "ok"}
 
 
-@router.get("/products/{sku}")
-def get_product(
-    sku: str, db: Session = Depends(get_db)
-) -> ProductResponse:
-    """Get a product by SKU."""
-    product: Product | None = db.execute(
-        select(Product).where(Product.sku.ilike(sku))
-    ).scalar_one_or_none()
-
-    if not product:
-        return {"error": "Product not found"}
-
-    return ProductResponse(
-        sku=product.sku,
-        name=product.name,
-        description=product.description,
-        active=product.active
-    )
-
-
 @router.delete("/products/{sku}")
 def delete_product(sku: str, db: Session = Depends(get_db)) -> dict[str, str]:
     """Delete a product based on SKU"""
@@ -64,40 +44,68 @@ def delete_product(sku: str, db: Session = Depends(get_db)) -> dict[str, str]:
     return {"status": "deleted"}
 
 @router.get("/products")
-def list_products(
+def get_products(
     db: Session = Depends(get_db),
-    cursor: int = 0,
-    count: int = 10
+    sku: str | None = None,
+    q: str | None = None,
+    cursor: int | None = None,
+    limit: int = 50,
 ):
-    """List products with cursor-based pagination."""
-    stmt = (
-        select(Product)
-        .where(Product.id > cursor)
-        .order_by(Product.id)
-        .limit(count + 1)
-    )
+    if sku and q:
+        raise HTTPException(400, "Use either sku or q, not both")
+
+    stmt = select(Product)
+
+    # 🎯 GET by SKU
+    if sku:
+        stmt = stmt.where(Product.sku == sku)
+        product = db.execute(stmt).scalar_one_or_none()
+
+        if not product:
+            raise HTTPException(404, "Product not found")
+
+        return {
+            "products": [{
+                "id": product.id,
+                "sku": product.sku,
+                "name": product.name,
+                "description": product.description,
+                "active": product.active,
+            }],
+            "has_more": False,
+            "next_cursor": None,
+            "status": "ok",
+        }
+
+    if q:
+        search_term = f"%{q.strip()}%"
+        stmt = stmt.where(
+            or_(
+                Product.sku.ilike(search_term),
+                Product.name.ilike(search_term),
+                Product.description.ilike(search_term),
+            )
+        )
+
+    if cursor:
+        stmt = stmt.where(Product.id > cursor)
+
+    stmt = stmt.order_by(Product.id).limit(limit)
 
     products = db.execute(stmt).scalars().all()
 
-    has_more = len(products) > count
-    products = products[:count]
-
-    next_cursor = products[-1].id if products else None
-
-    products_res = [
-        {
-            "sku": product.sku,
-            "name": product.name,
-            "description": product.description,
-            "active": product.active
-        }
-        for product in products
-    ]
-
     return {
-        "products": products_res,
-        "next_cursor": next_cursor,
-        "has_more": has_more,
-        "status": "ok"
+        "products": [
+            {
+                "id": p.id,
+                "sku": p.sku,
+                "name": p.name,
+                "description": p.description,
+                "active": p.active,
+            }
+            for p in products
+        ],
+        "next_cursor": products[-1].id if products else None,
+        "has_more": len(products) == limit,
+        "status": "ok",
     }
-

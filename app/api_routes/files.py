@@ -1,4 +1,5 @@
 """API routes for file upload and management."""
+from typing import Dict, List
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
@@ -8,6 +9,7 @@ from app.db.file_process import FileProcessor
 from app.pydantic_models import FileUploadResponse
 from app.tasks.csv_task import process_csv
 from app.utils.aws import create_session
+from app.constants.file import FileStatus
 
 router = APIRouter()
 
@@ -43,7 +45,7 @@ async def upload_file(
         )
     file_record = FileProcessor(
         file_name=file_name,
-        status="processing",
+        status=FileStatus.PENDING,
         total_number_of_records=0,
         records_inserted=0,
         records_updated=0
@@ -59,12 +61,12 @@ async def upload_file(
     )
 
 @router.get("/files")
-def list_files(db: Session = Depends(get_db)):
+def list_files(db: Session = Depends(get_db)) -> Dict[str, str | List[Dict[str, str | int]]]:
     """List all uploaded files with their status."""
     files = db.execute(
         select(FileProcessor).order_by(desc(FileProcessor.id))
     ).scalars().all()
-    files_res = [
+    files_res: List[Dict[str, str | int]] = [
         {
             "id": file.id,
             "file_name": file.file_name,
@@ -85,7 +87,7 @@ def list_files(db: Session = Depends(get_db)):
 @router.get("/files/{file_id}/error-download-url")
 async def get_error_file_download_url(
     file_id: int, db: Session = Depends(get_db)
-) -> dict[str, str]:
+) -> Dict[str, str]:
     """Get a presigned URL to download error file for a given file ID."""
     file_record = db.execute(
         select(FileProcessor).where(FileProcessor.id == file_id)
@@ -110,3 +112,79 @@ async def get_error_file_download_url(
 
     return {"error_file_download_url": presigned_url}
 
+
+@router.post("/files/{file_id}/retry")
+def retry_file(
+    file_id: int, db = Depends(get_db)
+):
+    file: FileProcessor | None = db.execute(
+        select(FileProcessor).where(FileProcessor.id == file_id)
+    ).scalar_one_or_none()
+    if not file:
+        return HTTPException(status_code=404, detail="No file available")
+    if file.status == FileStatus.COMPLETED:
+        return HTTPException(status_code=404, detail="File is already processed")
+    if file.status == FileStatus.PROCESSING:
+        return HTTPException(status_code=404, detail="File is getting processed")
+    process_csv.delay(file.file_name)
+
+
+@router.get("/files/{file_id}/status")
+def get_current_file_status(
+    file_id: int, db = Depends(get_db)
+) -> Dict[str, int | str]:
+    file: FileProcessor | None = db.execute(
+        select(FileProcessor).where(FileProcessor.id == file_id)
+    ).scalar_one_or_none()
+    if not file:
+        return HTTPException(status_code=404, detail="No file available")
+    return {
+        "id": file.id,
+        "file_name": file.file_name,
+        "status": file.status,
+        "total_number_of_records": file.total_number_of_records,
+        "records_inserted": file.records_inserted,
+        "records_updated": file.records_updated,
+        "file_with_errors": file.file_with_errors
+    }
+
+
+@router.get("/files/search")
+def search_files(
+    db: Session = Depends(get_db),
+    q: str = ""
+) -> Dict[str, str | List[Dict[str, str | int]]]:
+    """Search files by file name."""
+    if not q or not q.strip():
+        # If no query, return empty results
+        return {
+            "files": [],
+            "status": "ok"
+        }
+    
+    # Build search query - search in file_name
+    search_term = f"%{q.strip()}%"
+    
+    files = db.execute(
+        select(FileProcessor)
+        .where(FileProcessor.file_name.ilike(search_term))
+        .order_by(desc(FileProcessor.id))
+    ).scalars().all()
+    
+    files_res: List[Dict[str, str | int]] = [
+        {
+            "id": file.id,
+            "file_name": file.file_name,
+            "status": file.status,
+            "total_number_of_records": file.total_number_of_records,
+            "records_inserted": file.records_inserted,
+            "records_updated": file.records_updated,
+            "file_with_errors": file.file_with_errors
+        }
+        for file in files
+    ]
+    
+    return {
+        "files": files_res,
+        "status": "ok"
+    }

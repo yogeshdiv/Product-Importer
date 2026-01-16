@@ -1,4 +1,5 @@
 export type Product = {
+    id?: number;
     name: string;
     sku: string;
     description: string;
@@ -22,4 +23,5 @@ export interface ProductsResponse {
   products: Product[];
   next_cursor: number | null;
   has_more: boolean;
+  total_count: number | null;
 }

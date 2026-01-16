@@ -1,20 +1,18 @@
 import { useState, useEffect } from "react";
-import type { Product } from "../interface"
+import type { ProductsResponse } from "../interface"
 import styles from './EditProducts.module.css';
 import { useNavigate } from "react-router-dom";
+import { getProducts, postProduct } from "../../api/products.api";
 
 export const EditProduct = () => {
     const navigator = useNavigate()
     const urlParams = new URLSearchParams(window.location.search);
-    const sku = urlParams.get("sku");
-    console.log(sku)
+    const sku: String = urlParams.get("sku");
     const [product, setProducts] = useState<Product | null>(null);
     useEffect(() => {
         const fetchProduct = async () => {
-            const res = await fetch(`http://localhost:8000/products/${sku}`);
-            const product: Product = await res.json();
-            console.log(product)
-            setProducts(product);
+            const ProductResponse: ProductsResponse =  await getProducts({sku: sku})
+            setProducts(ProductResponse.products[0]);
         }
         fetchProduct();
     }, [sku]);
@@ -29,17 +27,11 @@ export const EditProduct = () => {
         const description = formData.get("description") as string;
         const name = formData.get("name") as string;
         const UpdateApi = async () => {
-            const res = await fetch(`http://localhost:8000/products`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    sku: sku,
-                    name: name,
-                    description: description
-                })
-            });
+            const res = await postProduct({
+                sku: sku,
+                name: name,
+                description: description
+            })
             if (res.ok) {
                 alert('Product updated');
             }

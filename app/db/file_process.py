@@ -1,8 +1,10 @@
 """File processor database model."""
 from sqlalchemy import Index, text
+from sqlalchemy import Enum as SqlEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.models import Base
+from app.constants.file import FileStatus
 
 
 class FileProcessor(Base):
@@ -11,7 +13,15 @@ class FileProcessor(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     file_name: Mapped[str] = mapped_column(nullable=False)
-    status: Mapped[str] = mapped_column(default="pending")
+    status: Mapped[FileStatus] = mapped_column(
+        SqlEnum(
+            FileStatus,
+            name="file_status_enum",
+            values_callable=lambda enum: [e.value for e in enum]
+        ),
+        default=FileStatus.PENDING,
+        nullable=False,
+    )
     total_number_of_records: Mapped[int] = mapped_column(default=0)
     records_inserted: Mapped[int] = mapped_column(default=0)
     records_updated: Mapped[int] = mapped_column(default=0)

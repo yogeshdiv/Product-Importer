@@ -9,8 +9,8 @@ class Product(Base):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True)
-    sku = Column(String(64), nullable=False)
-    name = Column(String(255), nullable=False)
+    sku = Column(String, nullable=False)
+    name = Column(String, nullable=False)
     description = Column(String)
     active = Column(Boolean, nullable=False, server_default=text("true"))
 

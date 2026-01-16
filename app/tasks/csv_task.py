@@ -16,9 +16,10 @@ from app.db.file_process import FileProcessor
 from app.db.products import Product
 from app.redis import increment_redis_data, set_redis_data
 from app.utils.aws import create_session
+from app.constants.file import FileStatus
 
 CHECKPOINT_FOR_DB_COMMIT = 10000
-DB_BATCH_SIZE = 2000
+DB_BATCH_SIZE = 250
 
 
 def upsert_products(
@@ -78,7 +79,7 @@ def process_csv_task(
 
     rows_to_insert: list[dict] = []
     processed_since_checkout: int = 0
-    set_redis_data("file_status", file_processor.id, "processing")
+    set_redis_data("file_status", file_processor.id, FileStatus.PROCESSING)
     rows_with_errors: list[dict] = []
 
     for row in reader:
@@ -115,6 +116,8 @@ def process_csv_task(
 
     if rows_with_errors:
         handle_error_file(rows_with_errors, s3_client, db, file_processor)
+    else:
+        file_processor.status = FileStatus.COMPLETED
 
 
 def handle_error_file(
@@ -145,6 +148,7 @@ def handle_error_file(
         Key=f"errors/{file_processor.id}.csv",
     )
     file_processor.file_with_errors = f"errors/{file_processor.id}.csv"
+    file_processor.status = FileStatus.COMPLETED_WITH_ERRORS
     db.commit()
 
     os.remove(temp_path)
@@ -165,7 +169,7 @@ def process_csv(self, file_name: str) -> None:  # pylint: disable=unused-argumen
         print(f"FileProcessor record not found for file: {file_name}")
         return
 
-    file_processor.status = "processing"
+    file_processor.status = FileStatus.PROCESSING
     db.commit()
 
     # =========================
@@ -183,8 +187,10 @@ def process_csv(self, file_name: str) -> None:  # pylint: disable=unused-argumen
     # =========================
     # PASS 2: PROCESS ROWS
     # =========================
-    process_csv_task(file_name, file_processor, db, s3_client)
-
-    file_processor.status = "completed"
+    try:
+        process_csv_task(file_name, file_processor, db, s3_client)
+    except Exception:
+        file_processor.status = "error"
+    else:
+        set_redis_data("file_status", file_processor.id, "completed")
     db.commit()
-    set_redis_data("file_status", file_processor.id, "completed")

@@ -80,6 +80,7 @@
   border-radius: 12px;
   animation: slideDown 0.3s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
 }
 
 .progressContainer.processing {
@@ -349,6 +350,39 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.closeButton {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background-color: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  padding: 0;
+  z-index: 10;
+}
+
+.closeButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #374151;
+}
+
+.closeButton:active {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.closeButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }
 
 @media (max-width: 768px) {

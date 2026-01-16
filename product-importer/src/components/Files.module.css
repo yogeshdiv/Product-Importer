@@ -30,6 +30,17 @@ h2 {
   font-weight: 600;
 }
 
+.searchInput {
+  margin-bottom: 1rem;
+}
+
+.searchInfo {
+  margin-bottom: 1rem;
+  color: #4f46e5;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
 .loading {
   padding: 2rem;
   text-align: center;

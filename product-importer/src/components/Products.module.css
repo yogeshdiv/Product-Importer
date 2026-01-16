@@ -79,6 +79,36 @@
               0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.productCount {
+  margin-bottom: 1rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.loadingBatch {
+  color: #4f46e5;
+  font-style: italic;
+}
+
+.searchInput {
+  margin-bottom: 1rem;
+}
+
+.searchInfo {
+  margin-bottom: 1rem;
+  color: #4f46e5;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 1.5rem 1rem 2rem;
